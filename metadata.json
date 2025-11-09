@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Travel Review AI",
+  "description": "Generate compelling travel reviews from GPS coordinates and chat with a travel expert AI.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
