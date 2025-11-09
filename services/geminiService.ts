@@ -93,21 +93,22 @@ export const generateReview = async (lat: number, lon: number, placeName: string
         }
         
         return { locationName: placeName, reviewTitle, reviewContent };
-    } catch (error) {
-        console.error("Error detallado en generateReview:", error);
+    } catch (error: any) {
+        // Log the full error object for detailed debugging
+        console.error("Error detallado en generateReview:", JSON.stringify(error, null, 2));
         
-        // More specific and user-friendly error messages
-        let errorMessage = "Se identificó el lugar, pero no se pudo generar el contenido de la reseña. ";
-        if (error instanceof Error) {
-            if (error.message.toLowerCase().includes('json')) {
-                errorMessage += "La IA devolvió un formato de respuesta inesperado. Por favor, intenta de nuevo.";
-            } else if (error.message.includes('incompleta')) {
-                 errorMessage += "La respuesta de la IA no contenía todos los datos necesarios.";
-            } else {
-                errorMessage += "Hubo un problema de comunicación con el servicio de IA.";
-            }
+        let errorMessage = "No se pudo generar la reseña. ";
+        const errorString = JSON.stringify(error).toLowerCase();
+
+        // Check for specific network/API key errors
+        if (errorString.includes('rpc failed') || errorString.includes('xhr error') || errorString.includes('makersuite') || (error.code && error.code === 500)) {
+            errorMessage += "Error de comunicación con el servicio de IA. Esto casi siempre se debe a un problema con la API Key. Por favor, revisa que tu clave sea válida y que la 'Generative Language API' esté habilitada en el proyecto de Google Cloud correcto. Si el problema persiste, intenta crear una nueva clave.";
+        } else if (errorString.includes('json')) {
+            errorMessage += "La IA devolvió un formato de respuesta inesperado. Por favor, intenta de nuevo.";
+        } else if (error.message && typeof error.message === 'string' && error.message.includes('incompleta')) {
+             errorMessage += "La respuesta de la IA no contenía todos los datos necesarios.";
         } else {
-             errorMessage += "Ocurrió un error inesperado.";
+             errorMessage += "Ocurrió un error inesperado. Revisa la consola para más detalles.";
         }
         
         throw new Error(errorMessage);
