@@ -1,11 +1,9 @@
 import { GoogleGenAI, GenerateContentResponse, Chat, Part, Type } from "@google/genai";
 import { ReviewData } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
+const ai = process.env.API_KEY ? new GoogleGenAI({ apiKey: process.env.API_KEY }) : null;
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const isApiKeySet = (): boolean => !!ai;
 
 /**
  * Uses a reliable, non-AI reverse geocoding service to find a location name.
@@ -40,6 +38,10 @@ export const getLocationNameFromCoords = async (lat: number, lon: number): Promi
  * Generates the review content using the AI, now that we have a confirmed location name.
  */
 export const generateReview = async (lat: number, lon: number, placeName: string, imageFile?: {data: string, mimeType: string} | null): Promise<ReviewData> => {
+    if (!ai) {
+        throw new Error("El servicio de IA no está inicializado. Revisa la configuración de la API Key.");
+    }
+
     if (!placeName || placeName.trim() === '') {
         throw new Error("El nombre del lugar es obligatorio para generar una reseña.");
     }
@@ -114,6 +116,9 @@ export const generateReview = async (lat: number, lon: number, placeName: string
 
 
 export const createChat = (): Chat => {
+  if (!ai) {
+    throw new Error("El servicio de IA no está inicializado. Revisa la configuración de la API Key.");
+  }
   return ai.chats.create({
     model: 'gemini-2.5-flash',
   });
